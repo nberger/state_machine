@@ -179,7 +179,7 @@ module StateMachine
         # Calls the method defined by the current state of the machine
         context.class_eval <<-end_eval, __FILE__, __LINE__
           def #{method}(*args, &block)
-            self.class.state_machine(#{machine_name.inspect}).states.match!(self).call(self, #{method.inspect}, lambda {super}, *args, &block)
+            self.class.state_machine(#{machine_name.inspect}).states.match!(self).call(::Proc.new { super }, self, #{method.inspect}, *args, &block)
           end
         end_eval
       end
@@ -196,13 +196,13 @@ module StateMachine
     # 
     # If the method has never been defined for this state, then a NoMethodError
     # will be raised.
-    def call(object, method, method_missing = nil, *args, &block)
+    def call(dispatch_super, object, method, *args, &block)
       if context_method = methods[method.to_sym]
         # Method is defined by the state: proxy it through
         context_method.bind(object).call(*args, &block)
       else
-        # Dispatch to the superclass since this state doesn't handle the method
-        method_missing.call if method_missing
+        # Dispatch to the superclass
+        dispatch_super.call
       end
     end
     

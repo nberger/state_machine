@@ -679,8 +679,8 @@ class StateWithInvalidMethodCallTest < Test::Unit::TestCase
     @object = @klass.new
   end
   
-  def test_should_call_method_missing_arg
-    assert_equal 1, @state.call(@object, :invalid, lambda {1})
+  def test_should_call_lambda
+    assert_equal 1, @state.call(lambda { 1 }, @object, :invalid)
   end
 end
 
@@ -700,19 +700,19 @@ class StateWithValidMethodCallTest < Test::Unit::TestCase
   end
   
   def test_should_not_raise_an_exception
-    assert_nothing_raised { @state.call(@object, :speed, lambda {raise}) }
+    assert_nothing_raised { @state.call(lambda { raise }, @object, :speed) }
   end
   
   def test_should_pass_arguments_through
-    assert_equal 1, @state.call(@object, :speed, lambda {}, 1)
+    assert_equal 1, @state.call(lambda {}, @object, :speed, 1)
   end
   
   def test_should_pass_blocks_through
-    assert_equal [nil, 1], @state.call(@object, :speed) {1}
+    assert_equal [nil, 1], @state.call(lambda {}, @object, :speed) {1}
   end
   
   def test_should_pass_both_arguments_and_blocks_through
-    assert_equal [1, 2], @state.call(@object, :speed, lambda {}, 1) {2}
+    assert_equal [1, 2], @state.call(lambda {}, @object, :speed, 1) {2}
   end
 end
 
